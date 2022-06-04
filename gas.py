@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plot
+import glob
 from utils.requester import *
 import time
 import csv
@@ -7,7 +9,7 @@ request_delay = 1
 
 
 class csv_data():
-    def __init__(self, file_name="gas.csv"):
+    def __init__(self, file_name="gas/gas.csv"):
         self.file_name = file_name
 
     def write_prices(self, prices):
@@ -21,9 +23,10 @@ class csv_data():
         with open(self.file_name, "r") as csv_file:
             prices = []
             csv_reader = csv.reader(csv_file, delimiter=',')
-            for row in csv_reader:
-                prices.append(Price(row[0], row[1], row[2]))
-
+            for i, row in enumerate(csv_reader):
+                if i % 2 == 0 and i != 0:
+                    print(row)
+                    prices.append(Price(row[1], row[2], row[0]))
         return prices
 
 
@@ -67,12 +70,45 @@ class gas_money():
 
     def save_gas_prices(self):
         for list_of_prices in self.prices:
-            data = csv_data(str(list_of_prices[0].time_))
+            data = csv_data("gas/" + str(list_of_prices[0].time_) + ".csv")
             data.write_prices(list_of_prices)
 
         print("Saving Prices")
 
+    def read_gas_prices(self):
+        gas_lists = [i for i in glob.glob("gas/*.csv")]
+        self.prices = []
+        for list_ in gas_lists:
+            data = csv_data(str(list_))
+            self.prices.append(data.read_prices())
+
+    def display_gas_prices(self):
+        for list_ in self.prices:
+            for price in list_:
+                print(price)
+        # Sort by price
+        order = [i.state for i in self.prices[0]]
+        print(order)
+        prices = [i.price for i in self.prices[0]]
+        print(prices)
+
+        ordered_prices = {}
+        j = 0
+        for i in order:
+            ordered_prices[order[j]] = prices[j]
+            j += 1
+
+        # sort ordered prices by price
+        ordered_prices = sorted(ordered_prices.items(), key=lambda x: x[1])
+        j = 0
+        for i, v in ordered_prices:
+            order[j] = i
+            prices[j] = v
+            j += 1
+        plot.bar(order, prices)
+        plot.show()
+
 
 gas = gas_money()
-gas.get_gas_prices()
-gas.save_gas_prices()
+gas.read_gas_prices()
+gas.display_gas_prices()
