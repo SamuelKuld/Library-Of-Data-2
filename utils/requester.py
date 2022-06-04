@@ -11,7 +11,7 @@ class Requester():
             "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, image/webp",
             "Upgrade-Insecure-Requests": "1",
             "Accept-Encoding": "gzip",
-            "Referer": "https://www.google.com/"}, timeout=5):
+            "Referer": "https://www.google.com/"}, timeout=10):
 
         self.url = url
         self.headers = headers
@@ -28,3 +28,4 @@ class Requester():
         data_got = self.requests_object.get(self.url, timeout=self.timeout)
         self.status, self.data, self.string = data_got.status_code, data_got, data_got.text
         self.bullshit = bullshit(self.string, "html.parser")
+
