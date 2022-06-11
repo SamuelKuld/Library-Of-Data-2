@@ -1,11 +1,22 @@
-import matplotlib.pyplot as plot
+from datetime import datetime as dt
+import matplotlib.pyplot as plt
+import matplotlib
 import glob
 from utils.requester import *
 import time
+import numpy
 import csv
+from textwrap import wrap
 
 url = "https://www.google.com/"
 request_delay = 1
+plots = 0
+states = ['alabama', 'alaska', 'arizona', 'arkansas', 'california', 'colorado', 'connecticut', 'delaware', 'florida', 'georgia', 'hawaii', 'idaho', 'illinois', 'indiana', 'iowa', 'kansas', 'kentucky', 'louisiana', 'maine', 'maryland', 'massachusetts', 'michigan', 'minnesota', 'mississippi', 'missouri', 'montana', 'nebraska',
+          'nevada', 'new-hampshire', 'new-jersey', 'new-mexico', 'new-york', 'north-carolina', 'north-dakota', 'ohio', 'oklahoma', 'oregon', 'pennsylvania', 'rhode-island', 'south-carolina', 'south-dakota', 'tennessee', 'texas', 'utah', 'vermont', 'virginia', 'washington', 'washington-dc', 'west-virginia', 'wisconsin', 'wyoming']
+#states = ["\n".join(wrap(state, 5)) for state in states]
+matplotlib.rcParams.update({'font.size': 7})
+matplotlib.rcParams["figure.figsize"] = [7.50, 3.50]
+matplotlib.style.use(['dark_background'])
 
 
 class csv_data():
@@ -25,7 +36,6 @@ class csv_data():
             csv_reader = csv.reader(csv_file, delimiter=',')
             for i, row in enumerate(csv_reader):
                 if i % 2 == 0 and i != 0:
-                    print(row)
                     prices.append(Price(row[1], row[2], row[0]))
         return prices
 
@@ -72,6 +82,7 @@ class gas_money():
         for list_of_prices in self.prices:
             data = csv_data("gas/" + str(list_of_prices[0].time_) + ".csv")
             data.write_prices(list_of_prices)
+        self.prices = []
 
         print("Saving Prices")
 
@@ -82,33 +93,72 @@ class gas_money():
             data = csv_data(str(list_))
             self.prices.append(data.read_prices())
 
-    def display_gas_prices(self):
-        for list_ in self.prices:
-            for price in list_:
-                print(price)
+    def display_gas_prices_bar(self, item=0):
+        global plots
         # Sort by price
-        order = [i.state for i in self.prices[0]]
-        print(order)
-        prices = [i.price for i in self.prices[0]]
+        prices = [i.price for i in self.prices[item]]
         print(prices)
+        X_axis = numpy.arange(len(states))
+        now = dt.fromtimestamp(float(self.prices[item][0].time_))
+        plt.xticks(X_axis, states)
+        plt.bar(X_axis + (0.2 * item), [float(i.replace('$', '')) for i in prices],
+                label=f"Gas Prices - {now.strftime('%Y-%m-%d %H:%M:%S')}", width=.2, )
+        plt.xticks()
 
-        ordered_prices = {}
-        j = 0
-        for i in order:
-            ordered_prices[order[j]] = prices[j]
-            j += 1
+    def display_gas_prices_graph(self):
+        self.read_gas_prices()
+        states_and_prices = []
+        for j in range(len(states)):
+            states_and_prices.append(
+                [i for i in [k[j] for k in self.prices]])
+        for i in states_and_prices:
+            plt.plot([float(i.price.replace('$', ''))
+                     for i in i], label=states[states_and_prices.index(i)])
 
-        # sort ordered prices by price
-        ordered_prices = sorted(ordered_prices.items(), key=lambda x: x[1])
-        j = 0
-        for i, v in ordered_prices:
-            order[j] = i
-            prices[j] = v
-            j += 1
-        plot.bar(order, prices)
-        plot.show()
+    def display_average_gas_prices_graph(self):
+        old = 0
+        avg_prices = []
+        times = []
+        for record in self.prices:
+            for i in record:
+                old += float(i.price.replace('$', ''))
+            record_time = dt.fromtimestamp(round(float(record[0].time_)))
+            times.append(record_time)
+            avg_prices.append(old / 52)
+            old = 0
+        axes = plt.axes()
+        axes.plot(times, avg_prices)
+        plt.scatter(times, avg_prices, label="Average Prices", s=3)
+
+    def display_average_CA_gas_prices_graph(self):
+        old = 0
+        avg_prices = []
+        times = []
+        for record in self.prices:
+            avg_prices.append(float(record[4].price.replace('$', '')))
+            record_time = dt.fromtimestamp(round(float(record[0].time_)))
+            times.append(record_time)
+        axes = plt.axes()
+        axes.plot(times, avg_prices)
+        plt.scatter(times, avg_prices, label="Average Prices")
+
+    def display_plot(self):
+        plt.legend(loc='upper left')
+        plt.show()
 
 
-gas = gas_money()
-gas.read_gas_prices()
-gas.display_gas_prices()
+def main():
+    gas = None
+    gas = gas_money()
+    gas.prices = []
+    try:
+        gas.get_gas_prices()
+    except requests.exceptions.ReadTimeout:
+        print("Timeout")
+        return
+    gas.save_gas_prices()
+
+
+if __name__ == "__main__":
+    while True:
+        main()
