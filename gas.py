@@ -41,9 +41,9 @@ class csv_data():
 
 
 class Price():
-    def __init__(self, price, time_=time.time(), state="california"):
+    def __init__(self, price, time_, state="california"):
         self.price = price
-        self.time_ = time_
+        self.time_ = time_ or time.time()
         self.state = state
 
     def __repr__(self):
@@ -54,10 +54,14 @@ class gas_money():
     def __init__(self):
         self.data = Requester(
             "https://www.gasbuddy.com/")
-        self.data.connect_and_get_data()
+        try:
+            self.data.connect_and_get_data()
+        except:
+            print("Could not connect to gasbuddy")
         self.prices = []
 
     def get_gas_prices(self):
+        self.prices = []
         states = self.data.bullshit.find_all(
             "div", {"class": "SearchStateCloud-module__stateContainer___2StKz"})
         state_links = []
@@ -66,12 +70,13 @@ class gas_money():
             state_links.append("https://www.gasbuddy.com" +
                                i.find("a").get("href"))
 
-        for link in state_links:
+        for i, link in enumerate(state_links):
+            print(f"{i + 1} of 51 ")
             self.data = Requester(link)
             self.data.connect_and_get_data()
 
             prices.append(Price(self.data.bullshit.find(
-                "span", {"class": "text__xl___2MXGo text__left___1iOw3 StationDisplayPrice-module__price___3rARL"}).text, state=link.split("/")[-1]))  # ? This is the price of gas in a state
+                "span", {"class": "text__xl___2MXGo text__left___1iOw3 StationDisplayPrice-module__price___3rARL"}).text, time_=time.time(),  state=link.split("/")[-1]))  # ? This is the price of gas in a state
             print("Price got.")
             time.sleep(request_delay)
 
@@ -97,7 +102,6 @@ class gas_money():
         global plots
         # Sort by price
         prices = [i.price for i in self.prices[item]]
-        print(prices)
         X_axis = numpy.arange(len(states))
         now = dt.fromtimestamp(float(self.prices[item][0].time_))
         plt.xticks(X_axis, states)
@@ -112,8 +116,8 @@ class gas_money():
             states_and_prices.append(
                 [i for i in [k[j] for k in self.prices]])
         for i in states_and_prices:
-            plt.plot([float(i.price.replace('$', ''))
-                     for i in i], label=states[states_and_prices.index(i)])
+            plt.plot([dt.fromtimestamp(round(float(i.time_))) for i in i], [float(i.price.replace('$', ''))
+                                                                            for i in i], label=states[states_and_prices.index(i)])
 
     def display_average_gas_prices_graph(self):
         old = 0
@@ -124,11 +128,11 @@ class gas_money():
                 old += float(i.price.replace('$', ''))
             record_time = dt.fromtimestamp(round(float(record[0].time_)))
             times.append(record_time)
-            avg_prices.append(old / 52)
+            avg_prices.append(old / 51)
             old = 0
         axes = plt.axes()
         axes.plot(times, avg_prices)
-        plt.scatter(times, avg_prices, label="Average Prices", s=3)
+        plt.scatter(times, avg_prices, label="Average Prices", s=0)
 
     def display_average_CA_gas_prices_graph(self):
         old = 0
@@ -142,20 +146,39 @@ class gas_money():
         axes.plot(times, avg_prices)
         plt.scatter(times, avg_prices, label="Average Prices")
 
+    def display_average_OR_gas_prices_graph(self):
+        old = 0
+        avg_prices = []
+        times = []
+        for record in self.prices:
+            avg_prices.append(
+                float(record[states.index("oregon")].price.replace('$', '')))
+            record_time = dt.fromtimestamp(round(float(record[0].time_)))
+            times.append(record_time)
+        axes = plt.axes()
+        axes.plot(times, avg_prices)
+        plt.scatter(times, avg_prices, label="Average Prices")
+
     def display_plot(self):
         plt.legend(loc='upper left')
         plt.show()
 
 
 def main():
-    gas = None
-    gas = gas_money()
-    gas.prices = []
     try:
+        gas = None
+        gas = gas_money()
+        gas.prices = []
         gas.get_gas_prices()
-    except requests.exceptions.ReadTimeout:
-        print("Timeout")
+        gas.save_gas_prices()
+    except:
+        print("error")
         return
+
+
+def debug():
+    gas = gas_money()
+    gas.get_gas_prices()
     gas.save_gas_prices()
 
 
