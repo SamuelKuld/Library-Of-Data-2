@@ -89,7 +89,7 @@ class gas_money():
             data.write_prices(list_of_prices)
         self.prices = []
 
-        print("Saving Prices")
+        print("Saved Prices")
 
     def read_gas_prices(self):
         gas_lists = [i for i in glob.glob("gas/*.csv")]
@@ -131,8 +131,17 @@ class gas_money():
             avg_prices.append(old / 51)
             old = 0
         axes = plt.axes()
-        axes.plot(times, avg_prices)
-        plt.scatter(times, avg_prices, label="Average Prices", s=0)
+        for i in range(len(avg_prices)):
+            if i > 0:
+                if avg_prices[i] > avg_prices[i - 1]:
+                    axes.plot([times[i-1], times[i]],
+                              [avg_prices[i-1], avg_prices[i]], color="red")
+                elif avg_prices[i] < avg_prices[i - 1]:
+                    axes.plot([times[i-1], times[i]],
+                              [avg_prices[i-1], avg_prices[i]], color="green")
+                else:
+                    axes.plot([times[i-1], times[i]],
+                              [avg_prices[i-1], avg_prices[i]], color="white")
 
     def display_average_CA_gas_prices_graph(self):
         old = 0

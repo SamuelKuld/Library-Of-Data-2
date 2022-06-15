@@ -53,7 +53,13 @@ def main():
         times.append(record_time)
         avg_prices.append(old / 51)
         old = 0
-    plt.plot(times[::-1][:5], avg_prices[::-1][:5])
+    plt.plot(times[::-1][:5], avg_prices[::-1][:5], color="black")
+    if avg_prices[-5] < avg_prices[-1]:
+        plt.plot(times[::-1][:5], avg_prices[::-1][:5], color='red')
+    elif avg_prices[-5] == avg_prices[-1]:
+        plt.plot(times[::-1][:5], avg_prices[::-1][:5], color='white')
+    else:
+        plt.plot(times[::-1][:5], avg_prices[::-1][:5], color='green')
     plt.draw()
     plt.pause(1)
 
