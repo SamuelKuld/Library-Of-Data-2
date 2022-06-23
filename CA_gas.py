@@ -150,7 +150,7 @@ class gas_money():
                     old += float(i.price.replace('$', ''))
             record_time = dt.fromtimestamp(round(float(record[0].time_)))
             times.append(record_time)
-            avg_prices.append(old / 715)
+            avg_prices.append(old / len(record))
             old = 0
         axes = plt.axes()
         if len(avg_prices) > 3:
