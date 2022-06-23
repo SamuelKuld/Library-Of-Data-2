@@ -15,7 +15,7 @@ states = ['alabama', 'alaska', 'arizona', 'arkansas', 'california', 'colorado', 
           'nevada', 'new-hampshire', 'new-jersey', 'new-mexico', 'new-york', 'north-carolina', 'north-dakota', 'ohio', 'oklahoma', 'oregon', 'pennsylvania', 'rhode-island', 'south-carolina', 'south-dakota', 'tennessee', 'texas', 'utah', 'vermont', 'virginia', 'washington', 'washington-dc', 'west-virginia', 'wisconsin', 'wyoming']
 #states = ["\n".join(wrap(state, 5)) for state in states]
 matplotlib.rcParams.update({'font.size': 7})
-matplotlib.rcParams["figure.figsize"] = [7.50, 3.50]
+matplotlib.rcParams["figure.figsize"] = [7.50, 2.50]
 matplotlib.style.use(['dark_background'])
 
 
@@ -169,7 +169,8 @@ class gas_money():
         plt.scatter(times, avg_prices, label="Average Prices")
 
     def display_plot(self):
-        plt.legend(loc='upper left')
+        plt.legend(loc='upper left', bbox_to_anchor=(
+            0.5, -0.05), fancybox=True, shadow=True, ncol=5)
         plt.show()
 
 

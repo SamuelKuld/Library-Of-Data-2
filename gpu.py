@@ -99,18 +99,40 @@ class gpu_analyzer():
             self.amazon_prices.append(amazon_to_append)
             self.newegg_prices.append(newegg_to_append)
 
-    def average_prices(self):
+    def clean_data(self):
+        new_amazon_prices = []  
+        new_newegg_prices = []
         for i in self.amazon_prices:
-            i.price = float(i.price)
-        for i in self.newegg_prices:
-            i.price = float(i.price)
+            if type(i) == type(Price(1, 1)):
+                i.price = i.price.replace("$", "")
+                i.price = i.price.replace(",", "")
+                new_amazon_prices.append(i)
 
+        for i in self.newegg_prices:
+            if type(i) == type(Price(1, 1)):
+                i.price = i.price.replace("$", "")
+                i.price = i.price.replace(",", "")
+                new_newegg_prices.append(i)
+        self.amazon_prices = new_amazon_prices
+        self.newegg_prices = new_newegg_prices
 
     def display_average_gpu_prices_graph(self):
         self.read_gpu_prices()
-        plt.plot([record.time_ for record in self.amazon_prices], [record.price for record in self.amazon_prices], "ro", label="Amazon")
+        self.clean_data()
+        plt.plot([record.time_ for record in self.amazon_prices], [
+                 record.price for record in self.amazon_prices], "ro", label="Amazon")
+
+        plt.plot([record.time_ for record in self.newegg_prices], [
+                 record.price for record in self.newegg_prices], "ro", label="Newegg")
+
+    def display_plot(self):
+        plt.legend(loc='upper left')
+        plt.show()
 
 
 gpu = gpu_analyzer()
 gpu.get_gpu_prices()
 gpu.read_gpu_prices()
+gpu.clean_data()
+gpu.display_average_gpu_prices_graph()
+gpu.display_plot()

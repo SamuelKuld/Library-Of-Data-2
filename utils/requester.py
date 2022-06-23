@@ -28,4 +28,4 @@ class Requester():
         data_got = self.requests_object.get(self.url, timeout=self.timeout)
         self.status, self.data, self.string = data_got.status_code, data_got, data_got.text
         self.bullshit = bullshit(self.string, "html.parser")
-
+        return self.string
