@@ -52,11 +52,11 @@ class gpu_analyzer():
         try:
             self.amazon_data.connect_and_get_data()
         except:
-            print("Could not connect to amazon")
+            print("Could not connect to amazon - GPU DATA")
         try:
             self.newegg_data.connect_and_get_data()
         except:
-            print("Could not connect to newegg")
+            print("Could not connect to newegg - GPU DATA")
         self.prices = []
 
     def get_gpu_prices(self):
@@ -82,7 +82,7 @@ class gpu_analyzer():
     def save_gpu_prices(self):
         data = csv_data("gpu/" + str(self.amazon_prices[0].time_) + ".csv")
         data.write_prices(self.amazon_prices + self.newegg_prices)
-        print("Saved Prices")
+        print("Saved Prices - GPU DATA")
 
     def read_gpu_prices(self):
         price_lists = [i for i in glob.glob("gpu/*.csv")]
@@ -100,7 +100,7 @@ class gpu_analyzer():
             self.newegg_prices.append(newegg_to_append)
 
     def clean_data(self):
-        new_amazon_prices = []  
+        new_amazon_prices = []
         new_newegg_prices = []
         for i in self.amazon_prices:
             if type(i) == type(Price(1, 1)):
@@ -116,14 +116,33 @@ class gpu_analyzer():
         self.amazon_prices = new_amazon_prices
         self.newegg_prices = new_newegg_prices
 
+    def display_candle_graph(self):
+        self.read_gpu_prices()
+        plt.figure()
+        amazon_up_prices = []
+        amazon_down_prices = []
+        for i in self.amazon_prices:
+            if i.price > self.amazon_prices[0].price:
+                amazon_up_prices.append(i)
+            elif i.price < self.amazon_prices[0].price:
+                amazon_down_prices.append(i)
+
+        newegg_up_prices = []
+        newegg_down_prices = []
+        for i in self.newegg_prices:
+            if i.price > self.newegg_prices[0].price:
+                newegg_up_prices.append(i)
+            elif i.price < self.newegg_prices[0].price:
+                newegg_down_prices.append(i)
+
     def display_average_gpu_prices_graph(self):
         self.read_gpu_prices()
         self.clean_data()
-        plt.plot([record.time_ for record in self.amazon_prices], [
-                 record.price for record in self.amazon_prices], "ro", label="Amazon")
+        plt.scatter([dt.fromtimestamp(i.time_) for i in self.amazon_prices], [
+            float(record.price.replace("$", '')) for record in self.amazon_prices], "ro", label="Amazon")
 
-        plt.plot([record.time_ for record in self.newegg_prices], [
-                 record.price for record in self.newegg_prices], "ro", label="Newegg")
+        plt.scatter([dt.fromtimestamp(i.time_) for i in self.newegg_prices], [
+            float(record.price.replace("$", '')) for record in self.newegg_prices], "bo", label="Newegg")
 
     def display_plot(self):
         plt.legend(loc='upper left')

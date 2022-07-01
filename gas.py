@@ -61,7 +61,6 @@ class gas_money():
         self.prices = []
 
     def get_gas_prices(self):
-        self.prices = []
         states = self.data.bullshit.find_all(
             "div", {"class": "SearchStateCloud-module__stateContainer___2StKz"})
         state_links = []
@@ -71,25 +70,36 @@ class gas_money():
                                i.find("a").get("href"))
 
         for i, link in enumerate(state_links):
-            print(f"{i + 1} of 51 ")
-            self.data = Requester(link)
-            self.data.connect_and_get_data()
+            retry = True
+            while retry:
+                try:
+                    print(f"{i + 1} of 51 - GAS DATA")
+                    temp_data = Requester(link)
+                    temp_data.connect_and_get_data()
 
-            prices.append(Price(self.data.bullshit.find(
-                "span", {"class": "text__xl___2MXGo text__left___1iOw3 StationDisplayPrice-module__price___3rARL"}).text, time_=time.time(),  state=link.split("/")[-1]))  # ? This is the price of gas in a state
-            print("Price got.")
-            time.sleep(request_delay)
-
+                    prices.append(Price(temp_data.bullshit.find(
+                        "span", {"class": "text__xl___2MXGo text__left___1iOw3 StationDisplayPrice-module__price___3rARL"}).text, time_=time.time(),  state=link.split("/")[-1]))  # ? This is the price of gas in a state
+                    print("Price got. - GAS DATA")
+                    time.sleep(request_delay)
+                    retry = False
+                except ValueError:
+                    print("Could not get price. - GAS DATA")
+                    retry = False
+                except AttributeError:
+                    print("Could not get price. - GAS DATA")
+                    retry = False
+                except Exception as e:
+                    print(f"Error : {e} - GAS DATA")
+                    retry = True
         self.prices.append(prices)
-        print("Got prices")
+        print("Got prices - GAS DATA")
 
     def save_gas_prices(self):
         for list_of_prices in self.prices:
             data = csv_data("gas/" + str(list_of_prices[0].time_) + ".csv")
             data.write_prices(list_of_prices)
-        self.prices = []
 
-        print("Saved Prices")
+        print("Saved Prices - GAS DATA")
 
     def read_gas_prices(self):
         gas_lists = [i for i in glob.glob("gas/*.csv")]
@@ -98,7 +108,7 @@ class gas_money():
             data = csv_data(str(list_))
             self.prices.append(data.read_prices())
 
-    def display_gas_prices_bar(self, item=0):
+    def display_gas_prices_bar(self, item=-1):
         global plots
         # Sort by price
         prices = [i.price for i in self.prices[item]]
@@ -182,7 +192,7 @@ def main():
         gas.get_gas_prices()
         gas.save_gas_prices()
     except:
-        print("error")
+        print("error - GAS DATA")
         return
 
 

@@ -68,7 +68,7 @@ class gas_money():
             retry = True
             while retry:
                 try:
-                    print(f"{i + 1} of {len(cities)} ")
+                    print(f"{i + 1} of {len(cities)} - CA GAS ")
                     self.data = Requester(link)
                     self.data.connect_and_get_data()
                     price = self.data.bullshit.find(
@@ -78,7 +78,7 @@ class gas_money():
                         # ? This is the price of gas in a state
                         prices.append(
                             Price(price, time_=time.time(),  state=link.split("/")[-1]))
-                        print("Price got.")
+                        print("Price got. - CA GAS")
 
                     time.sleep(request_delay)
                     retry = False
@@ -86,21 +86,21 @@ class gas_money():
                     # ? This is the price of gas in a state
                     prices.append(
                         Price("$4.50", time_=time.time(),  state=link.split("/")[-1]))
-                    print("Could not get price")
+                    print("Could not get price - CA GAS")
                     retry = False
                     continue
                 except AttributeError:
                     prices.append(Price(self.data.bullshit.find("$4.50", time_=time.time(
                     ),  state=link.split("/")[-1])))  # ? This is the price of gas in a state
-                    print("Could not get price")
+                    print("Could not get price - CA GAS")
                     retry = False
                     continue
                 except Exception as e:
-                    print("Retrying : " + str(e))
+                    print("Retrying : " + str(e) + " - CA GAS")
                     retry = True
 
         self.prices.append(prices)
-        print("Got prices")
+        print("Got prices - CA GAS")
 
     def save_gas_prices(self):
         for list_of_prices in self.prices:
@@ -108,7 +108,7 @@ class gas_money():
             data.write_prices(list_of_prices)
         self.prices = []
 
-        print("Saved Prices")
+        print("Saved Prices - CA GAS")
 
     def read_gas_prices(self):
         gas_lists = [i for i in glob.glob("gas_CA/*.csv")]
@@ -170,18 +170,28 @@ class gas_money():
 
     def print_statictics(self, item=0):
         sorted_prices = sorted(self.prices[item], key=lambda x: x.price)
+        cities = []
         numeric_prices = []
         for j in sorted_prices:
             if j.price != "---" and j.price != "":
+                cities.append(j.state)
                 numeric_prices.append(float(j.price.replace('$', '')))
                 print(j.state.split("/")[-1] + ": " + j.price)
 
         print("State Average : " + str(sum(numeric_prices) / len(numeric_prices)))
+        print("Minimum : " + str(numeric_prices[0]) + " at " + str(
+            cities[0]))
+        print("Maximum : " + str(max(numeric_prices)) + " at " + str(
+            sorted_prices[-1].state.split("/")[-1]))
 
     def display_plot(self):
         plt.legend(loc='upper left', bbox_to_anchor=(
             0.5, -0.05), fancybox=True, shadow=True, ncol=5)
         plt.show()
+
+    def draw_plot(self):
+        plt.draw()
+        plt.pause(1430)
 
 
 def main():
@@ -192,7 +202,7 @@ def main():
         gas.get_gas_prices()
         gas.save_gas_prices()
     except Exception as e:
-        print(f"error : {e}")
+        print(f"error : {e} - CA GAS")
         return
 
 
